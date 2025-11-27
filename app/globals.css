@@ -1,26 +1,53 @@
+/* app/globals.css */
 @import "tailwindcss";
 
+/* Base theme values */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  /* Light mode */
+  --background: #f8fafc; /* slate-50 */
+  --foreground: #0f172a; /* slate-900 */
 
-@theme inline {
+  --primary: #6366f1; /* indigo-500 */
+  --primary-foreground: #ffffff;
+
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  /* Tailwind theme tokens (used by bg-background, text-foreground, etc.) */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Dark mode */
+    --background: #0f172a; /* slate-900 */
+    --foreground: #f8fafc; /* slate-50 */
+
+    --primary: #818cf8; /* lighter indigo for dark mode */
+    --primary-foreground: #0f172a;
+
+    --card: #1e293b; /* slate-800 */
+    --card-foreground: #f8fafc;
+
+    /* Sync Tailwind tokens in dark mode */
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
   }
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
