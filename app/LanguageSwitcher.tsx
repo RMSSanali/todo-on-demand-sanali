@@ -1,7 +1,7 @@
 // TOD/tod/apps-web/app/LanguageSwitcher.tsx
-import {cookies} from 'next/headers';
+//import {cookies} from 'next/headers';
 
-async function setLocale(locale: 'en' | 'sv') {
+{/* async function setLocale(locale: 'en' | 'sv') {
   'use server';
   const store = await cookies();
   store.set('locale', locale, {
@@ -33,4 +33,4 @@ export function LanguageSwitcher() {
       </form>
     </div>
   );
-}
+} */}
