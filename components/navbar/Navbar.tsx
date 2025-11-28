@@ -18,7 +18,7 @@ export function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6">
-          <Link href="/tod" className="text-foreground hover:text-primary">
+          <Link href="/" className="text-foreground hover:text-primary">
             Home
           </Link>
 

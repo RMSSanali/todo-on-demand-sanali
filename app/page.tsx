@@ -1,4 +1,4 @@
-// TOD/tod/apps-web/app/tod/page.tsx
+// TOD/tod/apps-web/app/page.tsx
 import Link from "next/link";
 import { TodLogo } from "@/components/TodLogo";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ export default function TodHomePage() {
               Build your perfect to-do system.
             </h1>
 
-            <p className="text-base md:text-lg text-card-foreground/70">
+            <p className="text-base md:text-lg text-slate-600 dark:text-slate-300">
               Start fast with a ready-made template or design your own workflow
               with categories, priorities, reminders and more — all powered by
               the same secure backend.
