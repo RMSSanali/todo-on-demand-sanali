@@ -1,7 +1,6 @@
-// TOD/tod/apps-web/components/todo/TodoList.tsx
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 type Todo = {
@@ -13,164 +12,291 @@ type Todo = {
 type TodoListProps = {
   variant?: "light" | "dark";
   onCountChange?: (count: number) => void;
+
+  // NEW: which template this list belongs to
+  // e.g. "builder" | "minimal" | "dark"
+  templateId?: string;
 };
 
-export function TodoList({ variant = "light", onCountChange }: TodoListProps) {
+// For now we hardcode API URL to avoid .env confusion
+const API_URL = "http://localhost:4000";
+
+// Helper to build URLs with ?template=...
+function makeUrl(path: string, templateId: string) {
+  const url = new URL(path, API_URL);
+  url.searchParams.set("template", templateId);
+  return url.toString();
+}
+
+export function TodoList({
+  variant = "light",
+  onCountChange,
+  templateId = "default",
+}: TodoListProps) {
   const isDark = variant === "dark";
 
-  const [todos, setTodos] = useState<Todo[]>([
-    { id: 1, title: "Finish TOD Minimalist template", done: false },
-    { id: 2, title: "Create Dark Mode template", done: false },
-    { id: 3, title: "Prepare demo flow", done: true },
-  ]);
-
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  // 🔥 Notify parent when the number of tasks changes
+  console.log("🔥 TodoList using API_URL:", API_URL, "templateId:", templateId);
+
+  // Load todos from backend when component mounts / template changes
   useEffect(() => {
-    onCountChange?.(todos.length);
+    const fetchTodos = async () => {
+      try {
+        setLoading(true);
+        setLoadError(null);
+
+        const res = await fetch(makeUrl("/todos", templateId));
+        if (!res.ok) {
+          throw new Error(`Failed to load todos (${res.status})`);
+        }
+
+        const data: Todo[] = await res.json();
+        setTodos(data);
+      } catch (err) {
+        console.error(err);
+        setLoadError("Could not load tasks from server.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTodos();
+  }, [templateId]);
+
+  // Notify parent about count
+  useEffect(() => {
+    if (onCountChange) {
+      onCountChange(todos.length);
+    }
   }, [todos, onCountChange]);
 
-  function addTodo(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  // ➕ Create todo
+  const handleAddTodo = async () => {
     const title = newTodo.trim();
     if (!title) return;
 
-    if (editingId !== null) {
-      // 🔁 Update existing todo
-      setTodos((prev) =>
-        prev.map((todo) =>
-          todo.id === editingId ? { ...todo, title } : todo
-        )
-      );
-      setEditingId(null);
-    } else {
-      // ➕ Add new todo
-      setTodos((prev) => [
-        ...prev,
-        { id: Date.now(), title, done: false },
-      ]);
+    try {
+      setActionError(null);
+
+      const res = await fetch(makeUrl("/todos", templateId), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to create todo (${res.status})`);
+      }
+
+      const created: Todo = await res.json();
+      setTodos((prev) => [...prev, created]);
+      setNewTodo("");
+    } catch (err) {
+      console.error(err);
+      setActionError("Could not create task.");
     }
+  };
 
-    setNewTodo("");
-  }
+  // ✅ Toggle done
+  const handleToggleDone = async (id: number, done: boolean) => {
+    try {
+      setActionError(null);
 
-  function toggleTodo(id: number) {
-    setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === id ? { ...todo, done: !todo.done } : todo
-      )
-    );
-  }
+      const res = await fetch(`${API_URL}/todos/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ done }),
+      });
 
-  function deleteTodo(id: number) {
-    setTodos((prev) => prev.filter((todo) => todo.id !== id));
-  }
+      if (!res.ok) {
+        throw new Error(`Failed to update todo (${res.status})`);
+      }
+
+      const updated: Todo = await res.json();
+      setTodos((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    } catch (err) {
+      console.error(err);
+      setActionError("Could not update task.");
+    }
+  };
+
+  // ✏️ Start editing
+  const startEditing = (todo: Todo) => {
+    setEditingId(todo.id);
+    setEditingTitle(todo.title);
+  };
+
+  // 💾 Save edited title
+  const handleSaveEdit = async (id: number) => {
+    const title = editingTitle.trim();
+    if (!title) return;
+
+    try {
+      setActionError(null);
+
+      const res = await fetch(`${API_URL}/todos/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to update todo (${res.status})`);
+      }
+
+      const updated: Todo = await res.json();
+      setTodos((prev) => prev.map((t) => (t.id === id ? updated : t)));
+      setEditingId(null);
+      setEditingTitle("");
+    } catch (err) {
+      console.error(err);
+      setActionError("Could not save changes.");
+    }
+  };
+
+  // 🗑 Delete todo
+  const handleDelete = async (id: number) => {
+    try {
+      setActionError(null);
+
+      const res = await fetch(`${API_URL}/todos/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to delete todo (${res.status})`);
+      }
+
+      setTodos((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      console.error(err);
+      setActionError("Could not delete task.");
+    }
+  };
+
+  const inputClasses =
+    "flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring";
+
+  const itemBg = isDark ? "bg-muted/40" : "bg-muted/60";
 
   return (
     <div className="space-y-4">
-      {/* Add form */}
-      <form onSubmit={addTodo} className="flex gap-2">
+      {/* New todo input */}
+      <div className="flex gap-2">
         <input
-          type="text"
+          className={inputClasses}
+          placeholder="Add a task and sync it to your real backend..."
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
-          placeholder="Add a new task..."
-          className={
-            "flex-1 rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 " +
-            (isDark
-              ? "border-slate-700 bg-slate-900 text-slate-100 focus:ring-indigo-500/60"
-              : "border-purple-100 bg-white text-slate-800 focus:ring-purple-400/60")
-          }
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleAddTodo();
+          }}
         />
-        <Button type="submit" variant={isDark ? "outline" : "default"}>
-          {editingId === null ? "Add" : "Update"}
+        <Button onClick={handleAddTodo} size="sm">
+          Add
         </Button>
-      </form>
+      </div>
+
+      {/* Loading & error messages */}
+      {loading && (
+        <p className="text-xs text-muted-foreground">
+          Loading tasks from server...
+        </p>
+      )}
+
+      {loadError && (
+        <p className="text-xs text-red-500">{loadError}</p>
+      )}
+
+      {actionError && (
+        <p className="text-xs text-red-500">{actionError}</p>
+      )}
 
       {/* Todo list */}
-      <div className="space-y-2">
-        {todos.length === 0 && (
-          <p
-            className={
-              isDark ? "text-sm text-slate-400" : "text-sm text-slate-500"
-            }
-          >
-            No tasks yet. Add your first todo!
-          </p>
-        )}
-
+      <ul className="space-y-2">
         {todos.map((todo) => (
-          <div
+          <li
             key={todo.id}
-            className={
-              "flex items-center gap-3 rounded-2xl border px-3 py-3 text-sm shadow-sm " +
-              (isDark
-                ? "border-slate-700 bg-slate-900"
-                : "border-purple-100 bg-[#F9F7FF]")
-            }
+            className={`flex items-center justify-between rounded-md px-3 py-2 text-sm ${itemBg}`}
           >
-            <input
-              type="checkbox"
-              checked={todo.done}
-              onChange={() => toggleTodo(todo.id)}
-              className={
-                "h-4 w-4 rounded-full border " +
-                (isDark
-                  ? "border-slate-500 accent-indigo-400"
-                  : "border-purple-200 accent-purple-500")
-              }
-            />
-
-            <span
-              className={
-                "flex-1 " +
-                (isDark
-                  ? todo.done
-                    ? "line-through text-slate-500"
-                    : "text-slate-100"
-                  : todo.done
-                  ? "line-through text-slate-400"
-                  : "text-slate-700")
-              }
-            >
-              {todo.title}
-            </span>
-
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingId(todo.id);
-                  setNewTodo(todo.title);
-                }}
-                className={
-                  "text-xs " +
-                  (isDark
-                    ? "text-slate-400 hover:text-slate-200"
-                    : "text-slate-400 hover:text-slate-600")
+              <input
+                type="checkbox"
+                checked={todo.done}
+                onChange={(e) =>
+                  handleToggleDone(todo.id, e.target.checked)
                 }
-              >
-                Edit
-              </button>
-
-              <button
-                type="button"
-                onClick={() => deleteTodo(todo.id)}
-                className={
-                  "text-xs " +
-                  (isDark
-                    ? "text-slate-500 hover:text-rose-400"
-                    : "text-slate-300 hover:text-rose-400")
-                }
-              >
-                Delete
-              </button>
+              />
+              {editingId === todo.id ? (
+                <input
+                  className="rounded-md border border-border bg-background px-2 py-1 text-xs"
+                  value={editingTitle}
+                  onChange={(e) => setEditingTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSaveEdit(todo.id);
+                    }
+                    if (e.key === "Escape") {
+                      setEditingId(null);
+                      setEditingTitle("");
+                    }
+                  }}
+                />
+              ) : (
+                <span
+                  className={
+                    todo.done
+                      ? "line-through text-muted-foreground"
+                      : ""
+                  }
+                >
+                  {todo.title}
+                </span>
+              )}
             </div>
-          </div>
+
+            <div className="flex gap-1">
+              {editingId === todo.id ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleSaveEdit(todo.id)}
+                >
+                  Save
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => startEditing(todo)}
+                >
+                  Edit
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleDelete(todo.id)}
+              >
+                ✕
+              </Button>
+            </div>
+          </li>
         ))}
-      </div>
+
+        {todos.length === 0 && !loading && !loadError && (
+          <li className="text-xs text-muted-foreground">
+            No tasks yet. Add one and I’ll save it to PostgreSQL for you. ✨
+          </li>
+        )}
+      </ul>
     </div>
   );
 }

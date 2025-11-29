@@ -48,6 +48,16 @@ const templates = [
   },
 ];
 
+// 🔧 Fix broken route `/tod/app/...`
+// Map template IDs to REAL ROUTES that exist in your app
+function getTemplateHref(id: string) {
+  if (id === "minimal") return "/tod/minimal";
+  if (id === "dark") return "/tod/dark";
+
+  // For templates without custom pages yet, fallback to builder page
+  return "/tod/builder";
+}
+
 export default function TodTemplatesPage() {
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-background text-foreground">
@@ -91,7 +101,7 @@ export default function TodTemplatesPage() {
 
               <CardFooter className="mt-auto pt-2">
                 <Button asChild className="w-full">
-                  <Link href={`/tod/app/${template.id}`}>
+                  <Link href={getTemplateHref(template.id)}>
                     Use {template.name}
                   </Link>
                 </Button>
