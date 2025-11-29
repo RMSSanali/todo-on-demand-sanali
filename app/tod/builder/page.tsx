@@ -131,7 +131,7 @@ export default function TodBuilderPage() {
             </div>
 
             {/* Actual TodoList */}
-            <TodoList variant={isDark ? "dark" : "light"} />
+            <TodoList variant="light" templateId="minimal" />
           </div>
         </section>
       </div>

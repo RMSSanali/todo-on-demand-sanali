@@ -49,7 +49,7 @@ export default function DarkTemplatePage() {
 
           {/* Real todo list */}
           <div className="mt-2">
-            <TodoList variant="dark" onCountChange={setTaskCount} />
+            <TodoList variant="dark" templateId="dark" />
           </div>
         </section>
       </div>
