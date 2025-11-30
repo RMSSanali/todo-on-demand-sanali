@@ -1,34 +1,71 @@
 // TOD/tod/apps-web/app/tod/app/minimal/page.tsx
+"use client";
+
+import { useState } from "react";
 import { TodoList } from "@/components/todo/TodoList";
 
 export default function MinimalTemplatePage() {
+  const [title, setTitle] = useState("Groceries");
+
   return (
-    <main className="min-h-[calc(100vh-4rem)] bg-[radial-gradient(circle_at_top,_#f4f0ff,_#fdf7ff)] text-foreground flex justify-center">
-      <div className="w-full max-w-md px-4 py-10">
+    <main
+      className="min-h-[calc(100vh-4rem)] text-foreground flex justify-center"
+      style={{
+        background: "linear-gradient(135deg, #eadefaff 0%, #ffdbf8ff 100%)",
+      }}
+    >
+      <div className="w-full max-w-md px-4 py-10 soft-fade-in">
         <section className="mb-6 space-y-2">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-700">
             Template · Minimalist
           </p>
-          <h1 className="text-3xl font-bold text-slate-900">Groceries</h1>
-          <p className="text-sm text-slate-500">
+
+          {/* Editable title */}
+          <label className="block">
+            <span className="sr-only">List name</span>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full bg-transparent text-3xl font-bold text-slate-900 focus:outline-none focus:ring-0 placeholder:text-slate-400"
+              placeholder="My groceries"
+            />
+          </label>
+
+          <p className="text-sm text-slate-700">
             A clean, soft layout inspired by mobile todo apps.
           </p>
         </section>
 
         {/* Phone-like card */}
-        <section className="rounded-[32px] border border-purple-100 bg-white/90 shadow-lg shadow-purple-100/50 p-4">
-          {/* small top bar like in the design */}
-          <div className="flex items-center justify-between mb-4 text-xs text-slate-400">
+        <section
+          className="rounded-[32px] border border-purple-200 shadow-lg shadow-purple-200/50 p-4 transform transition-transform duration-300 ease-out hover:-translate-y-1 hover:shadow-xl"
+          style={{
+            background: `radial-gradient(circle at top right, rgba(255,255,255,0.4), transparent),
+                         linear-gradient(135deg, #C7B7FF 0%, #FFB6D9 100%)`,
+          }}
+        >
+          {/* small top bar */}
+          <div className="flex items-center justify-between mb-4 text-xs text-slate-500">
             <span>To Do List</span>
             <span>5 / 9</span>
           </div>
 
+          {/* Add Task */}
           <div className="rounded-2xl bg-[#F7F3FF]/70 border border-purple-100 px-3 py-2 mb-3 text-xs text-slate-400">
             + Add a task…
           </div>
 
           {/* Actual todo list */}
-          <TodoList variant="light" />
+          <TodoList
+            variant="light"
+            templateId="minimal"
+            showNotes={false}
+            showPriority={false}
+            checkboxClassName="circle"
+            enablePinned={false}
+            showCategories={false}
+          />
         </section>
       </div>
     </main>
