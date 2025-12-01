@@ -26,6 +26,18 @@ const templates = [
     details: ["Dark background", "Bright accents", "Eye-friendly"],
   },
   {
+    id: "premade",
+    name: "Premade Checklists",
+    emoji: "📋",
+    description:
+      "Ready-to-use routines like Morning, Study, Gym and Project.",
+    details: [
+      "Browse curated checklists",
+      "Import into your todo list",
+      "Daily, study, work & health",
+    ],
+  },
+  {
     id: "project",
     name: "Project-Based",
     emoji: "📂",
@@ -46,13 +58,29 @@ const templates = [
     description: "Playful and motivating task list with emojis.",
     details: ["Emoji-based sections", "Fun & visual", "Great for habits"],
   },
+  // 🕵️ NEW: Sherlock Mind Map Lite card
+  {
+    id: "mindmap",
+    name: "Sherlock Mind Map",
+    emoji: "🕵️‍♀️",
+    description: "Visual mind map for your tasks and projects.",
+    details: [
+      "Drag circles around freely",
+      "Lines connect related tasks",
+      "Perfect for brainstorming & planning",
+    ],
+  },
 ];
 
-// 🔧 Fix broken route `/tod/app/...`
-// Map template IDs to REAL ROUTES that exist in your app
+// 🔧 Map template IDs to REAL ROUTES that exist in your app
 function getTemplateHref(id: string) {
   if (id === "minimal") return "/tod/minimal";
   if (id === "dark") return "/tod/dark";
+  if (id === "premade") return "/tod/premade"; // 👈 NEW: premade gallery
+  if (id === "emoji") return "/tod/emoji-checklists"; // 👈 NEW: emoji checklists
+  if (id === "daily") return "/tod/daily";
+  if (id === "project") return "/tod/projects";
+  if (id === "mindmap") return "/tod/mindmap";
 
   // For templates without custom pages yet, fallback to builder page
   return "/tod/builder";
@@ -69,8 +97,9 @@ export default function TodTemplatesPage() {
           </p>
           <h1 className="text-3xl font-bold">Pick a TOD template</h1>
           <p className="text-sm md:text-base text-card-foreground/70 max-w-2xl">
-            Start with a layout that matches your style. All templates use the
-            same secure backend and todo engine – only the experience changes.
+            Start with a layout that matches your style. Choose a simple Minimal
+            or Dark view, or load full routines using our Premade Checklists –
+            all powered by the same secure backend and todo engine.
           </p>
         </header>
 
@@ -79,7 +108,11 @@ export default function TodTemplatesPage() {
           {templates.map((template) => (
             <Card
               key={template.id}
-              className="flex flex-col justify-between border-border/70 bg-card/90"
+              className={`flex flex-col justify-between border-border/70 bg-card/90 ${
+                template.id === "premade"
+                  ? "border-primary/60 shadow-sm" // small visual highlight for Premade
+                  : ""
+              }`}
             >
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -102,7 +135,9 @@ export default function TodTemplatesPage() {
               <CardFooter className="mt-auto pt-2">
                 <Button asChild className="w-full">
                   <Link href={getTemplateHref(template.id)}>
-                    Use {template.name}
+                    {template.id === "premade"
+                      ? "Browse premade checklists"
+                      : `Use ${template.name}`}
                   </Link>
                 </Button>
               </CardFooter>

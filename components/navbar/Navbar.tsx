@@ -1,17 +1,29 @@
-// TOD/tod/apps-web/components/navbar/Navbar.tsx
 "use client";
 
 import Link from "next/link";
 import { TodLogo } from "../TodLogo";
 import { Button } from "@/components/ui/button";
-//import { LanguageSwitcher } from "@/app/LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
+import { useEffect, useState } from "react";
+import { getCurrentUser, clearCurrentUser } from "@/lib/auth";
 
 export function Navbar() {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    setUser(getCurrentUser());
+  }, []);
+
+  const handleLogout = () => {
+    clearCurrentUser();
+    window.location.href = "/tod/login";
+  };
+
   return (
     <nav className="w-full border-b border-border bg-background">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Left side: Logo */}
+        
+        {/* Logo */}
         <Link href="/tod" className="flex items-center gap-2">
           <TodLogo />
         </Link>
@@ -30,18 +42,33 @@ export function Navbar() {
             Builder
           </Link>
 
-          {/* EN / SV Switch */}
-          {/*<LanguageSwitcher /> */}
-
-          {/* Auth Buttons (fake for now) */}
-          <Button variant="outline">Login</Button>
-          <Button>Register</Button>
+          {/* Auth actions */}
+          {user ? (
+            <>
+              <span className="text-sm text-muted-foreground">
+                👤 {user.username}
+              </span>
+              <Button variant="outline" onClick={handleLogout}>
+                Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href="/tod/login">
+                <Button variant="outline">Login</Button>
+              </Link>
+              <Link href="/tod/register">
+                <Button>Register</Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Hamburger */}
         <div className="md:hidden">
           <MobileMenu />
         </div>
+
       </div>
     </nav>
   );
