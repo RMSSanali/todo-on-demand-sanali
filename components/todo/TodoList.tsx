@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { exportChecklistToPdf } from "@/lib/pdfExport"; // ✅ NEW
 
 type Priority = "low" | "medium" | "high";
 type Category = "none" | "work" | "personal" | "study";
@@ -33,7 +34,8 @@ type TodoListProps = {
   checkboxClassName?: string;
   enablePinned?: boolean;
   showCategories?: boolean;
-  showSubtasks?: boolean; // NEW: toggle subtasks UI
+  showSubtasks?: boolean; // toggle subtasks UI
+  initialTodos?: { id: number; title: string; done: boolean }[];
 };
 
 const API_URL = "http://localhost:4000";
@@ -97,10 +99,26 @@ export function TodoList({
   enablePinned = true,
   showCategories = true,
   showSubtasks = true,
+  initialTodos,
 }: TodoListProps) {
   const isDark = variant === "dark";
 
-  const [todos, setTodos] = useState<Todo[]>([
+  const [todos, setTodos] = useState<Todo[]>(() => {
+  if (initialTodos && initialTodos.length > 0) {
+    return initialTodos.map((t) => ({
+      id: t.id,
+      title: t.title,
+      done: t.done,
+      priority: "medium", // default for samples
+      note: undefined,
+      pinned: false,
+      category: "none",
+      subtasks: [],
+    }));
+  }
+
+  // fallback demo list if no initialTodos provided
+  return [
     {
       id: 1,
       title: "Plan today’s 3 main tasks",
@@ -109,10 +127,7 @@ export function TodoList({
       note: "Choose only the most important tasks.",
       pinned: true,
       category: "work",
-      subtasks: [
-        { id: 1, title: "Pick top 3 tasks", done: false },
-        { id: 2, title: "Estimate time for each", done: false },
-      ],
+      subtasks: [],
     },
     {
       id: 2,
@@ -134,7 +149,9 @@ export function TodoList({
       category: "personal",
       subtasks: [],
     },
-  ]);
+  ];
+});
+
 
   const [newTodo, setNewTodo] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -168,46 +185,50 @@ export function TodoList({
   );
 
   // Load todos from backend when component mounts / template changes
-  useEffect(() => {
-    const fetchTodos = async () => {
-      try {
-        setLoading(true);
-        setLoadError(null);
+useEffect(() => {
+  // If we passed initialTodos (like Minimal groceries), skip backend fetch
+  if (initialTodos && initialTodos.length > 0) {
+    return;
+  }
 
-        const res = await fetch(makeUrl("/todos", templateId));
-        if (!res.ok) {
-          throw new Error(`Failed to load todos (${res.status})`);
-        }
+  const fetchTodos = async () => {
+    try {
+      setLoading(true);
+      setLoadError(null);
 
-        const raw = await res.json();
-
-        // Add default priority + one example note (for demo)
-        const data: Todo[] = (raw as any[]).map((t, index) => ({
-          id: t.id,
-          title: t.title,
-          done: t.done,
-          priority: "medium" as Priority,
-          note:
-            t.note ??
-            (index === 0
-              ? "Example note: break this task into small steps."
-              : undefined),
-          pinned: false,
-          category: "none",
-          subtasks: [], // start empty when loading from server
-        }));
-
-        setTodos(data);
-      } catch (err) {
-        console.error(err);
-        setLoadError("Could not load tasks from server.");
-      } finally {
-        setLoading(false);
+      const res = await fetch(makeUrl("/todos", templateId));
+      if (!res.ok) {
+        throw new Error(`Failed to load todos (${res.status})`);
       }
-    };
 
-    fetchTodos();
-  }, [templateId]);
+      const raw = await res.json();
+
+      const data: Todo[] = (raw as any[]).map((t, index) => ({
+        id: t.id,
+        title: t.title,
+        done: t.done,
+        priority: "medium" as Priority,
+        note:
+          t.note ??
+          (index === 0
+            ? "Example note: break this task into small steps."
+            : undefined),
+        pinned: false,
+        category: "none",
+        subtasks: [],
+      }));
+
+      setTodos(data);
+    } catch (err) {
+      console.error(err);
+      setLoadError("Could not load tasks from server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchTodos();
+}, [templateId, initialTodos]);
 
   // Notify parent about count
   useEffect(() => {
@@ -467,6 +488,22 @@ export function TodoList({
     if (!aPinned && bPinned) return 1;
     return 0;
   });
+
+  // 📄 NEW: Export visible list to PDF (Lite)
+  const handleExportPdf = () => {
+    if (sortedTodos.length === 0) return;
+
+    const items = sortedTodos.map((todo) => ({
+      label: todo.title,
+      checked: todo.done,
+    }));
+
+    exportChecklistToPdf({
+      title: "TOD Checklist",
+      items,
+      fileName: `tod-checklist-${templateId}.pdf`,
+    });
+  };
 
   return (
     <div className={`space-y-4 ${rootTextColor}`}>
@@ -825,6 +862,19 @@ export function TodoList({
           </li>
         )}
       </ul>
+
+      {/* 📄 NEW: Download as PDF button (Lite) */}
+      {sortedTodos.length > 0 && (
+        <div className="flex justify-end pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportPdf}
+          >
+            📄 Download as PDF
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

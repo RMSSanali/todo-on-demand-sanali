@@ -1,4 +1,4 @@
-// TOD/tod/apps-web/app/tod/app/builder/page.tsx
+// TOD/tod/apps-web/app/tod/builder/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -12,9 +12,51 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { TodoList } from "@/components/todo/TodoList";
+import { PremadeChecklistPicker } from "@/components/builder/PremadeChecklistPicker";
+import type { ChecklistTemplate } from "@/data/checklistTemplates";
+import { useBuilderStore } from "@/store/builder-store";
+import { EmojiChecklistList } from "@/components/emoji-checklist/EmojiChecklistList";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 type TemplateStyle = "minimalist" | "project" | "daily" | "emoji";
 
+// same backend base URL as TodoList uses
+const API_URL = "http://localhost:4000";
+
+// helper to attach ?template=...
+function makeUrl(path: string, templateId: string) {
+  const url = new URL(path, API_URL);
+  url.searchParams.set("template", templateId);
+  return url.toString();
+}
+
+// helper to color emoji checklists by templateId prefix
+function getEmojiChecklistColorClasses(templateId: string, isDark: boolean) {
+  if (templateId.startsWith("work-")) {
+    return isDark
+      ? "bg-indigo-950/60 border-indigo-500/50"
+      : "bg-indigo-50 border-indigo-200";
+  }
+  if (templateId.startsWith("study-")) {
+    return isDark
+      ? "bg-amber-950/40 border-amber-600/50"
+      : "bg-amber-50 border-amber-200";
+  }
+  if (templateId.startsWith("fitness-")) {
+    return isDark
+      ? "bg-emerald-950/40 border-emerald-600/50"
+      : "bg-emerald-50 border-emerald-200";
+  }
+
+  return isDark
+    ? "bg-slate-900/70 border-slate-700"
+    : "bg-slate-50/90 border-slate-200";
+}
+
+// Main Builder page component
 export default function TodBuilderPage() {
   const [isDark, setIsDark] = useState(false);
   const [compact, setCompact] = useState(false);
@@ -22,12 +64,52 @@ export default function TodBuilderPage() {
   const [showBorder, setShowBorder] = useState(true);
 
   // Template + feature toggles
-  const [templateStyle, setTemplateStyle] = useState<TemplateStyle>("minimalist");
+  const [templateStyle, setTemplateStyle] =
+    useState<TemplateStyle>("minimalist");
   const [showNotes, setShowNotes] = useState(true);
   const [showPriority, setShowPriority] = useState(true);
   const [enablePinned, setEnablePinned] = useState(true);
   const [showCategories, setShowCategories] = useState(true);
-  const [showSubtasks, setShowSubtasks] = useState(true); // NEW
+  const [showSubtasks, setShowSubtasks] = useState(true);
+
+  // importing + refresh state
+  const [isImporting, setIsImporting] = useState(false);
+  const [importNonce, setImportNonce] = useState(0);
+  const [newEmojiItemText, setNewEmojiItemText] = useState<
+    Record<string, string>
+  >({});
+
+      // emoji checklists coming from EmojiGallery via store
+  const emojiChecklists = useBuilderStore((state) => state.emojiChecklists);
+  const clearEmojiChecklists = useBuilderStore(
+    (state) => state.clearEmojiChecklists
+  );
+  const removeEmojiChecklist = useBuilderStore(
+    (state) => state.removeEmojiChecklist
+  );
+    const addEmojiItemToChecklist = useBuilderStore(
+    (state) => state.addEmojiItemToChecklist
+  );
+    const handleNewEmojiItemChange = (checklistId: string, value: string) => {
+    setNewEmojiItemText((prev) => ({
+      ...prev,
+      [checklistId]: value,
+    }));
+  };
+
+  const handleAddEmojiItem = (checklistId: string) => {
+    const label = newEmojiItemText[checklistId]?.trim();
+    if (!label) return;
+
+    addEmojiItemToChecklist(checklistId, label);
+
+    setNewEmojiItemText((prev) => ({
+      ...prev,
+      [checklistId]: "",
+    }));
+  };
+
+
 
   // Apply template preset (controls templateStyle + feature toggles)
   const applyTemplatePreset = (style: TemplateStyle) => {
@@ -99,6 +181,32 @@ export default function TodBuilderPage() {
       : templateStyle === "daily"
       ? "Daily focus"
       : "Emoji checklist";
+
+  // import handler – creates real todos in backend for current template
+  const handleImportTemplate = async (template: ChecklistTemplate) => {
+    try {
+      setIsImporting(true);
+
+      // Create one todo per checklist item
+      await Promise.all(
+        template.items.map((title) =>
+          fetch(makeUrl("/todos", templateStyle), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title }),
+          })
+        )
+      );
+
+      // Force TodoList to re-mount → it will re-fetch tasks
+      setImportNonce((n) => n + 1);
+    } catch (err) {
+      console.error("Failed to import checklist", err);
+      // (Optional: later we can show a toast or message)
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-background text-foreground">
@@ -307,6 +415,21 @@ export default function TodBuilderPage() {
                 </div>
               </div>
 
+                            {/* Link to Daily Focus Planner page when Daily template is selected */}
+              {templateStyle === "daily" && (
+                <div className="pt-3">
+                  <p className="mb-1 text-xs text-slate-500">
+                    Want a dedicated daily planner view?
+                  </p>
+                  <Link href="/tod/daily">
+                    <Button size="sm" className="text-xs">
+                      Open Daily Focus Planner
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+
               {/* Reset */}
               <div className="pt-3">
                 <Button
@@ -324,12 +447,26 @@ export default function TodBuilderPage() {
                   Reset to default
                 </Button>
               </div>
+
+              {/* Premade checklist importer */}
+              <div className="pt-4 border-t border-slate-100/60 mt-4">
+                <PremadeChecklistPicker
+                  onImport={handleImportTemplate}
+                  isImporting={isImporting}
+                />
+              </div>
             </CardContent>
           </Card>
         </section>
 
         {/* Right side: Live preview */}
         <section className={"rounded-3xl p-6 " + previewBg}>
+          <p className="text-[11px] text-slate-500 mb-3">
+            This builder controls a <span className="font-semibold">real todo engine</span> – 
+            when you import a premade checklist, we create real tasks in a PostgreSQL backend 
+            using our Node API.
+          </p>
+
           <div
             className={
               "w-full max-w-md mx-auto mb-4 flex items-center justify-between " +
@@ -369,6 +506,7 @@ export default function TodBuilderPage() {
 
             {/* Actual TodoList */}
             <TodoList
+              key={`${templateStyle}-${importNonce}`} // re-mount after import
               variant={isDark ? "dark" : "light"}
               templateId={templateStyle}
               showNotes={showNotes}
@@ -377,6 +515,94 @@ export default function TodBuilderPage() {
               showCategories={showCategories}
               showSubtasks={showSubtasks}
             />
+
+                        {/* Emoji checklists preview (only when using Emoji template) */}
+            {templateStyle === "emoji" && emojiChecklists.length > 0 && (
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-400">
+                    Imported emoji checklists
+                  </p>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-[11px] px-2 text-slate-500 hover:text-slate-800"
+                    onClick={clearEmojiChecklists}
+                  >
+                    Clear all
+                  </Button>
+                </div>
+
+                <AnimatePresence initial={false}>
+                  {emojiChecklists.map((checklist) => (
+                    <motion.div
+                      key={checklist.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      <div
+                        className={
+                          "rounded-2xl border px-3 py-3 text-xs md:text-sm " +
+                          getEmojiChecklistColorClasses(
+                            checklist.templateId,
+                            isDark
+                          )
+                        }
+                      >
+                        <div className="mb-2 flex items-center gap-2">
+                          <span className="text-lg md:text-xl">
+                            {checklist.emoji}
+                          </span>
+                          <span className="font-medium">
+                            {checklist.title}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeEmojiChecklist(checklist.id)
+                            }
+                            className="ml-auto inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-300/70 text-slate-500 hover:bg-slate-100 hover:text-slate-800 text-[10px]"
+                            aria-label="Delete checklist"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+
+                        <EmojiChecklistList items={checklist.items} />
+
+                        {/* Add new emoji item */}
+                        <div className="mt-3 flex items-center gap-2">
+                          <Input
+                            placeholder="Add new step..."
+                            value={newEmojiItemText[checklist.id] ?? ""}
+                            onChange={(e) =>
+                              handleNewEmojiItemChange(
+                                checklist.id,
+                                e.target.value
+                              )
+                            }
+                            className="h-8 text-xs"
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="h-8 text-xs"
+                            onClick={() => handleAddEmojiItem(checklist.id)}
+                          >
+                            Add
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
         </section>
       </div>
