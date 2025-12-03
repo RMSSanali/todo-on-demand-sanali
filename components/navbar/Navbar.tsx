@@ -1,3 +1,4 @@
+// TOD/tod/apps-web/components/navbar/Navbar.tsx
 "use client";
 
 import Link from "next/link";
@@ -22,9 +23,9 @@ export function Navbar() {
   return (
     <nav className="w-full border-b border-border bg-background">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        
+
         {/* Logo */}
-        <Link href="/tod" className="flex items-center gap-2">
+        <Link href="/tod" className="flex items-center gap-2 cursor-pointer">
           <TodLogo />
         </Link>
 
@@ -68,7 +69,6 @@ export function Navbar() {
         <div className="md:hidden">
           <MobileMenu />
         </div>
-
       </div>
     </nav>
   );

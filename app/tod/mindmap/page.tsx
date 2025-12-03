@@ -229,7 +229,7 @@ function createSampleSherlockMap(): { nodes: MindNode[]; edges: MindEdge[] } {
       id: "timeline",
       label: "Timeline",
       x: 320,
-      y: 520,
+      y: 420,
       color: "#F472B6",
       shape: "pill",
     },
@@ -513,7 +513,7 @@ export default function SherlockMindMapPage() {
 
       <div
         ref={containerRef}
-        className="relative h-[520px] border rounded-xl bg-background overflow-hidden"
+        className="relative min-h-[520px] border rounded-xl bg-background overflow-hidden"
       >
         {/* Render lines with arrowheads */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none">

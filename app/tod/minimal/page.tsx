@@ -1,4 +1,4 @@
-// TOD/tod/apps-web/app/tod/app/minimal/page.tsx
+// TOD/tod/apps-web/app/tod/minimal/page.tsx
 "use client";
 
 import { useState } from "react";
