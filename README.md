@@ -94,6 +94,10 @@ The current authentication flow is intended for frontend demonstration and shoul
 
 This project demonstrates practical experience with TypeScript application development, React component design, Next.js App Router architecture, responsive UI development, client-side state management, reusable components, internationalisation, and frontend deployment with Vercel.
 
+## Author
+
+Created by [RMSSanali](https://github.com/RMSSanali).
+
 ## License
 
 This project was created as a learning and practice project. All rights reserved unless otherwise specified.
