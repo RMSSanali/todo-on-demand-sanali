@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TOD — Todo On Demand
 
-## Getting Started
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript) ![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)
 
-First, run the development server:
+TOD (Todo On Demand) is a modern task-management interface built with Next.js, React, and TypeScript. It explores different ways of planning and organizing tasks through focused layouts, reusable checklist templates, project views, and interactive productivity tools.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Live Demo
+
+[Open the live application](https://apps-web-psi.vercel.app/)
+
+## Features
+
+- Create and manage todo items
+- Mark tasks as completed
+- Organize tasks by priority and project
+- Multiple layouts, including minimal, daily, dark, and builder views
+- Premade checklist templates and emoji-based checklists
+- Project dashboard and mind-map planning view
+- Light and dark visual themes
+- English and Swedish translations
+- PDF export support
+- Responsive interface
+
+## Screenshots
+
+![Todo dashboard](public/tod/project1.png)
+
+![Todo builder](public/tod/tod-builder.png)
+
+![Premade checklists](public/tod/premade-checklists.png)
+
+![Daily planner](public/tod/daily-planner.png)
+
+![Mind-map view](public/tod/sherlock-mind-map.png)
+
+## Technology Stack
+
+- Next.js 16 with the App Router
+- React 19 and TypeScript
+- Tailwind CSS and Radix UI
+- Lucide React icons and Framer Motion
+- Zustand for client-side state management
+- Recharts for data visualisation
+- jsPDF for PDF export
+- next-intl for internationalisation
+- Vercel for deployment
+
+## Project Structure
+
+```text
+app/          Next.js routes and page layouts
+components/   Reusable UI and todo components
+data/         Checklist templates and sample data
+i18n/         Internationalisation configuration
+lib/          Authentication, PDF export, and utility functions
+messages/     English and Swedish translations
+public/tod/   Screenshots and demo assets
+store/        Zustand state stores
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Run Locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Requirements: Node.js 20 or later and npm.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+git clone https://github.com/RMSSanali/apps-web.git
+cd apps-web
+npm install
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-To learn more about Next.js, take a look at the following resources:
+Available commands:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run dev      # Start the development server
+npm run lint     # Run ESLint
+npm run build    # Create a production build
+npm start        # Start the production server
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+The application is deployed on Vercel: [apps-web-psi.vercel.app](https://apps-web-psi.vercel.app/).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Current Scope and Limitations
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This repository focuses on the frontend experience and interaction design. Some task-management flows reference a local backend at `http://localhost:4000`, but that backend is not included in this repository.
+
+The current authentication flow is intended for frontend demonstration and should not be treated as production-grade authentication without a secure backend, database, and server-side session management.
+
+## Portfolio Context
+
+This project demonstrates practical experience with TypeScript application development, React component design, Next.js App Router architecture, responsive UI development, client-side state management, reusable components, internationalisation, and frontend deployment with Vercel.
+
+## License
+
+This project was created as a learning and practice project. All rights reserved unless otherwise specified.
