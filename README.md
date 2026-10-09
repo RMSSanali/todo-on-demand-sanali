@@ -206,6 +206,31 @@ Watch the application walkthrough:
 
 ---
 
+## 🧪 Testing and QA
+
+The application was manually tested during development to verify the main user flows and interface behaviour.
+
+### Manual Test Coverage
+
+| ID | Test Case | Expected Result |
+|---|---|---|
+| TC-001 | Open the application | The home page loads successfully |
+| TC-002 | Add a todo item | The todo appears in the task list |
+| TC-003 | Complete a todo item | The task changes to a completed state |
+| TC-004 | Open the Todo Builder | The builder page loads correctly |
+| TC-005 | Open a checklist template | The selected template displays correctly |
+| TC-006 | Navigate between pages | Navigation links open the correct pages |
+| TC-007 | Switch between light and dark themes | The visual theme changes correctly |
+| TC-008 | Change the application language | Supported text changes correctly |
+| TC-009 | Open the mind-map view | The mind-map interface loads correctly |
+| TC-010 | Use PDF export | A PDF file is generated |
+| TC-011 | Open the Vercel deployment | The production application loads successfully |
+| TC-012 | Test a smaller screen size | The layout remains usable and responsive |
+
+The project currently uses manual testing. Automated unit, integration, and end-to-end tests may be added in future development.
+
+---
+
 ## 📦 Deployment
 
 The application is deployed with Vercel:
