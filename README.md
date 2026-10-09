@@ -68,15 +68,11 @@ npm start        # Start the production server
 
 ## 🔧 Environment Variables
 
-This project uses local environment configuration when required.
+No environment variables are required to run the current frontend locally.
 
-Create a `.env.local` file in the project root if local configuration is needed:
+The project includes a local `.env.local` file for optional development configuration. This file is ignored by Git and must not contain committed passwords, API keys, or other private credentials.
 
-```env
-# Add local development variables here if required
-```
-
-Do not commit `.env.local` or any file containing private credentials.
+If environment variables are added in the future, document their names and example values here without including real secrets.
 
 ---
 
