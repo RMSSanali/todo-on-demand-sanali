@@ -198,6 +198,14 @@ The mind-map view helps users organise ideas visually by connecting related conc
 
 ---
 
+## 🎥 Application Demo
+
+Watch the application walkthrough:
+
+[▶️ View the TOD demo video](public/tod/videos/tod-demo.mp4)
+
+---
+
 ## 📦 Deployment
 
 The application is deployed with Vercel:
